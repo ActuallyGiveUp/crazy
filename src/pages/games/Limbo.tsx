@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { TrendingUp, Play, Pause, Settings, RotateCcw, BarChart3, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useGame } from '../../contexts/GameContext';
-import LiveStats from '../../components/LiveStats';
+import DraggableLiveStats from '../../components/DraggableLiveStats';
 import RecentBets from '../../components/RecentBets';
 import SettingsManager from '../../components/SettingsManager';
 
@@ -47,12 +47,17 @@ const Limbo = () => {
   
   // Profit tracking
   const [sessionProfit, setSessionProfit] = useState(0);
-  const [profitHistory, setProfitHistory] = useState<{value: number, bet: number}[]>([{value: 0, bet: 0}]);
+  const [profitHistory, setProfitHistory] = useState<{value: number, bet: number, timestamp: number}[]>([{value: 0, bet: 0, timestamp: Date.now()}]);
   
   // UI states
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [instantBet, setInstantBet] = useState(false);
   
+  // UI states for draggable stats
+  const [showLiveStats, setShowLiveStats] = useState(false);
+  const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
+  const [betsPerSecond, setBetsPerSecond] = useState(0);
+
   // Enhanced statistics
   const [sessionStats, setSessionStats] = useState({
     totalBets: 0,
@@ -63,6 +68,23 @@ const Limbo = () => {
     longestLossStreak: 0,
     isWinStreak: true
   });
+
+  // Calculate bets per second
+  useEffect(() => {
+    if (sessionStartTime && sessionStats.totalBets > 0) {
+      const elapsed = (Date.now() - sessionStartTime) / 1000;
+      setBetsPerSecond(sessionStats.totalBets / elapsed);
+    }
+  }, [sessionStats.totalBets, sessionStartTime]);
+
+  const roundBetAmount = (amount: number) => {
+    // Round to 2 decimal places for amounts under $1
+    if (amount < 1) return Math.round(amount * 100) / 100;
+    // Round to 1 decimal place for amounts under $10
+    if (amount < 10) return Math.round(amount * 10) / 10;
+    // Round to nearest whole number for larger amounts
+    return Math.round(amount);
+  };
 
   const handlePlay = () => {
     if (!user || betAmount > user.balance) return;
@@ -124,7 +146,7 @@ const Limbo = () => {
         // Update profit tracking
         const newProfit = sessionProfit + profit;
         setSessionProfit(newProfit);
-        setProfitHistory(prev => [...prev.slice(-99), {value: newProfit, bet: sessionStats.totalBets + 1}]);
+        setProfitHistory(prev => [...prev, {value: newProfit, bet: sessionStats.totalBets + 1, timestamp: Date.now()}]);
         
         // Update session statistics
         setSessionStats(prev => {
@@ -242,7 +264,16 @@ const Limbo = () => {
         break;
     }
     
-    setBetAmount(Math.max(0.01, newBetAmount));
+    const finalBetAmount = roundBetAmount(Math.max(0.01, newBetAmount));
+    
+    // Check if user has enough balance for the new bet amount
+    if (user && finalBetAmount > user.balance) {
+      // If not enough balance, stop auto-betting
+      stopAutoPlay();
+      return;
+    }
+    
+    setBetAmount(finalBetAmount);
     setAutoBetCount(prev => prev - 1);
     
     if (autoBetCount <= 1 && !infiniteBet) {
@@ -255,8 +286,9 @@ const Limbo = () => {
     setAutoBetRunning(true);
     setAutoBetCount(infiniteBet ? Infinity : maxAutoBets);
     setBaseBet(betAmount);
-    setSessionProfit(0);
-    setProfitHistory([{value: 0, bet: 0}]);
+    if (!sessionStartTime) {
+      setSessionStartTime(Date.now());
+    }
     setFibIndex(0);
   };
 
@@ -264,7 +296,7 @@ const Limbo = () => {
     setIsAutoMode(false);
     setAutoBetRunning(false);
     setAutoBetCount(0);
-    setBetAmount(baseBet);
+    setBetAmount(originalBetAmount || baseBet);
     setStopOnNextWin(false);
   };
 
@@ -309,7 +341,7 @@ const Limbo = () => {
 
   const resetProfitGraph = () => {
     setSessionProfit(0);
-    setProfitHistory([{value: 0, bet: 0}]);
+    setProfitHistory([{value: 0, bet: 0, timestamp: Date.now()}]);
     setSessionStats({
       totalBets: 0,
       wins: 0,
@@ -319,6 +351,8 @@ const Limbo = () => {
       longestLossStreak: 0,
       isWinStreak: true
     });
+    setSessionStartTime(Date.now());
+    setBetsPerSecond(0);
   };
 
   // Enhanced profit graph component
@@ -568,17 +602,17 @@ const Limbo = () => {
                 </div>
               )}
             </div>
+            
+            {/* Live Stats Toggle */}
+            <button
+              onClick={() => setShowLiveStats(true)}
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center mt-2"
+            >
+              <BarChart3 className="w-5 h-5 mr-2" />
+              Show Live Stats
+            </button>
           </div>
           
-          <LiveStats
-            sessionStats={sessionStats}
-            sessionProfit={sessionProfit}
-            profitHistory={profitHistory}
-            onReset={resetProfitGraph}
-            formatCurrency={formatCurrency}
-            startTime={sessionStartTime}
-            betsPerSecond={betsPerSecond}
-          />
 
           <SettingsManager
             currentGame="limbo"
@@ -790,6 +824,19 @@ const Limbo = () => {
           </div>
         </div>
       </div>
+      
+      {/* Draggable Live Stats */}
+      <DraggableLiveStats
+        sessionStats={sessionStats}
+        sessionProfit={sessionProfit}
+        profitHistory={profitHistory}
+        onReset={resetProfitGraph}
+        formatCurrency={formatCurrency}
+        startTime={sessionStartTime}
+        betsPerSecond={betsPerSecond}
+        isOpen={showLiveStats}
+        onClose={() => setShowLiveStats(false)}
+      />
     </div>
   );
 };

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Zap, Play, Pause, Settings, RotateCcw, Save, RefreshCw } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useGame } from '../../contexts/GameContext';
-import LiveStats from '../../components/LiveStats';
+import DraggableLiveStats from '../../components/DraggableLiveStats';
 import RecentBets from '../../components/RecentBets';
 import SettingsManager from '../../components/SettingsManager';
 
@@ -44,6 +44,9 @@ const Crash = () => {
   const [betsPerSecond, setBetsPerSecond] = useState(0);
   const [newSeed, setNewSeed] = useState(seed);
 
+  // UI states for draggable stats
+  const [showLiveStats, setShowLiveStats] = useState(false);
+
   // Load saved settings on component mount
   useEffect(() => {
     const savedSettings = loadGameSettings('crash');
@@ -65,8 +68,11 @@ const Crash = () => {
   }, [sessionStats.totalBets, sessionStartTime]);
 
   const roundBetAmount = (amount: number) => {
+    // Round to 2 decimal places for amounts under $1
     if (amount < 1) return Math.round(amount * 100) / 100;
+    // Round to 1 decimal place for amounts under $10
     if (amount < 10) return Math.round(amount * 10) / 10;
+    // Round to nearest whole number for larger amounts
     return Math.round(amount);
   };
 
@@ -315,15 +321,6 @@ const Crash = () => {
             </div>
           </div>
 
-          <LiveStats
-            sessionStats={sessionStats}
-            sessionProfit={sessionProfit}
-            profitHistory={profitHistory}
-            onReset={resetStats}
-            formatCurrency={formatCurrency}
-            startTime={sessionStartTime}
-            betsPerSecond={betsPerSecond}
-          />
 
           <RecentBets bets={bets.filter(bet => bet.game === 'Crash')} formatCurrency={formatCurrency} maxBets={5} />
         </div>
@@ -371,6 +368,15 @@ const Crash = () => {
               </div>
             )}
             
+            {/* Live Stats Toggle */}
+            <button
+              onClick={() => setShowLiveStats(true)}
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center mt-2"
+            >
+              <BarChart3 className="w-5 h-5 mr-2" />
+              Show Live Stats
+            </button>
+            
             <div className="space-y-2">
               <button
                 onClick={startGame}
@@ -409,15 +415,6 @@ const Crash = () => {
             </div>
           </div>
           
-          <LiveStats
-            sessionStats={sessionStats}
-            sessionProfit={sessionProfit}
-            profitHistory={profitHistory}
-            onReset={resetStats}
-            formatCurrency={formatCurrency}
-            startTime={sessionStartTime}
-            betsPerSecond={betsPerSecond}
-          />
 
           <SettingsManager
             currentGame="crash"
@@ -521,6 +518,19 @@ const Crash = () => {
           </div>
         </div>
       </div>
+      
+      {/* Draggable Live Stats */}
+      <DraggableLiveStats
+        sessionStats={sessionStats}
+        sessionProfit={sessionProfit}
+        profitHistory={profitHistory}
+        onReset={resetStats}
+        formatCurrency={formatCurrency}
+        startTime={sessionStartTime}
+        betsPerSecond={betsPerSecond}
+        isOpen={showLiveStats}
+        onClose={() => setShowLiveStats(false)}
+      />
     </div>
   );
 };

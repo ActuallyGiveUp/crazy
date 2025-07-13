@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Dice1, Play, Settings, RotateCcw, TrendingUp, TrendingDown, Pause, BarChart3, RefreshCw, Save } from 'lucide-react';
+import { Dice6, Play, Settings, RotateCcw, TrendingUp, TrendingDown, Pause, BarChart3, RefreshCw, Save } from 'lucide-react';
 import { useGame } from '../../contexts/GameContext';
 import { useAuth } from '../../contexts/AuthContext';
-import LiveStats from '../../components/LiveStats';
+import DraggableLiveStats from '../../components/DraggableLiveStats';
 import RecentBets from '../../components/RecentBets';
 import SettingsManager from '../../components/SettingsManager';
 
@@ -81,6 +81,9 @@ const Dice = () => {
   const [betsPerSecond, setBetsPerSecond] = useState(0);
   const [newSeed, setNewSeed] = useState(seed);
 
+  // UI states for draggable stats
+  const [showLiveStats, setShowLiveStats] = useState(false);
+
   // Load saved settings on component mount
   useEffect(() => {
     const savedSettings = loadGameSettings('dice');
@@ -120,8 +123,11 @@ const Dice = () => {
   const targetNumber = rollUnder ? winChance : 100 - winChance;
 
   const roundBetAmount = (amount: number) => {
+    // Round to 2 decimal places for amounts under $1
     if (amount < 1) return Math.round(amount * 100) / 100;
+    // Round to 1 decimal place for amounts under $10
     if (amount < 10) return Math.round(amount * 10) / 10;
+    // Round to nearest whole number for larger amounts
     return Math.round(amount);
   };
 
@@ -294,14 +300,14 @@ const Dice = () => {
         if (won) {
           newBetAmount = baseBet;
         } else {
-          newBetAmount = betAmount * martingaleMultiplier;
+          newBetAmount = roundBetAmount(betAmount * martingaleMultiplier);
         }
         break;
         
       case 'fibonacci':
         if (won) {
           setFibIndex(Math.max(0, fibIndex - 2));
-          newBetAmount = baseBet * fibSequence[Math.max(0, fibIndex - 2)];
+          newBetAmount = roundBetAmount(baseBet * fibSequence[Math.max(0, fibIndex - 2)]);
         } else {
           const nextIndex = fibIndex + 1;
           if (nextIndex >= fibSequence.length) {
@@ -309,7 +315,7 @@ const Dice = () => {
             setFibSequence(prev => [...prev, newFib]);
           }
           setFibIndex(nextIndex);
-          newBetAmount = baseBet * (fibSequence[nextIndex] || 1);
+          newBetAmount = roundBetAmount(baseBet * (fibSequence[nextIndex] || 1));
         }
         break;
         
@@ -321,17 +327,26 @@ const Dice = () => {
             newSeq.pop();
           }
           setCurrentLabouchere(newSeq);
-          newBetAmount = newSeq.length > 0 ? baseBet * (newSeq[0] + (newSeq[newSeq.length - 1] || 0)) : baseBet;
+          newBetAmount = newSeq.length > 0 ? roundBetAmount(baseBet * (newSeq[0] + (newSeq[newSeq.length - 1] || 0))) : baseBet;
         } else {
-          const newSeq = [...currentLabouchere, betAmount / baseBet];
+          const newSeq = [...currentLabouchere, roundBetAmount(betAmount / baseBet)];
           setCurrentLabouchere(newSeq);
-          newBetAmount = baseBet * (newSeq[0] + newSeq[newSeq.length - 1]);
+          newBetAmount = roundBetAmount(baseBet * (newSeq[0] + newSeq[newSeq.length - 1]));
         }
         break;
     }
     
     // Ensure minimum bet and round
-    setBetAmount(roundBetAmount(Math.max(0.01, newBetAmount)));
+    const finalBetAmount = roundBetAmount(Math.max(0.01, newBetAmount));
+    
+    // Check if user has enough balance for the new bet amount
+    if (user && finalBetAmount > user.balance) {
+      // If not enough balance, stop auto-betting
+      stopAutoPlay();
+      return;
+    }
+    
+    setBetAmount(finalBetAmount);
     setAutoBetCount(prev => prev - 1);
     
     if (autoBetCount <= 1 && !infiniteBet) {
@@ -468,7 +483,7 @@ const Dice = () => {
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-gray-800 rounded-lg p-6">
             <div className="flex items-center mb-6">
-              <Dice1 className="w-8 h-8 text-blue-400 mr-3" />
+              <Dice6 className="w-8 h-8 text-blue-400 mr-3" />
               <h1 className="text-2xl font-bold text-white">Dice Game</h1>
             </div>
             
@@ -478,7 +493,10 @@ const Dice = () => {
                 {/* Long Thin Line with Arrow */}
                 <div className="relative w-full max-w-96 h-16 mx-auto mb-6 overflow-hidden">
                   {/* Main line */}
-                  <div className="absolute top-8 left-0 right-0 h-2 bg-gradient-to-r from-red-500 via-yellow-500 to-green-500 rounded-full min-w-full"></div>
+                  <div className="absolute top-8 left-0 right-0 h-2 rounded-full min-w-full">
+                    <div className="h-full w-1/2 bg-red-500 rounded-l-full float-left"></div>
+                    <div className="h-full w-1/2 bg-green-500 rounded-r-full float-right"></div>
+                  </div>
                   
                   {/* Target zone */}
                   <div 
@@ -616,16 +634,6 @@ const Dice = () => {
             </div>
           </div>
 
-          <LiveStats
-            sessionStats={sessionStats}
-            sessionProfit={sessionProfit}
-            profitHistory={profitHistory}
-            onReset={resetProfitGraph}
-            formatCurrency={formatCurrency}
-            startTime={sessionStartTime}
-            betsPerSecond={betsPerSecond}
-          />
-
           <RecentBets bets={bets.filter(bet => bet.game === 'Dice')} formatCurrency={formatCurrency} maxBets={5} />
         </div>
         
@@ -717,18 +725,17 @@ const Dice = () => {
                 </div>
               )}
             </div>
+            
+            {/* Live Stats Toggle */}
+            <button
+              onClick={() => setShowLiveStats(true)}
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center mt-2"
+            >
+              <BarChart3 className="w-5 h-5 mr-2" />
+              Show Live Stats
+            </button>
           </div>
           
-          <LiveStats
-            sessionStats={sessionStats}
-            sessionProfit={sessionProfit}
-            profitHistory={profitHistory}
-            onReset={resetProfitGraph}
-            formatCurrency={formatCurrency}
-            startTime={sessionStartTime}
-            betsPerSecond={betsPerSecond}
-          />
-
           <SettingsManager
             currentGame="dice"
             currentSettings={{
@@ -1162,6 +1169,19 @@ const Dice = () => {
           </div>
         </div>
       </div>
+      
+      {/* Draggable Live Stats */}
+      <DraggableLiveStats
+        sessionStats={sessionStats}
+        sessionProfit={sessionProfit}
+        profitHistory={profitHistory}
+        onReset={resetProfitGraph}
+        formatCurrency={formatCurrency}
+        startTime={sessionStartTime}
+        betsPerSecond={betsPerSecond}
+        isOpen={showLiveStats}
+        onClose={() => setShowLiveStats(false)}
+      />
     </div>
   );
 };

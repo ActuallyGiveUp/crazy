@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Play as PlayIcon, Pause, Settings, RotateCcw } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import { useGame } from '../../contexts/GameContext';
-import LiveStats from '../../components/LiveStats';
+import DraggableLiveStats from '../../components/DraggableLiveStats';
 import RecentBets from '../../components/RecentBets';
 import SettingsManager from '../../components/SettingsManager';
 
@@ -25,6 +25,13 @@ const SpinWheel = () => {
   
   // Profit tracking
   const [sessionProfit, setSessionProfit] = useState(0);
+  const [profitHistory, setProfitHistory] = useState<{value: number, bet: number, timestamp: number}[]>([{value: 0, bet: 0, timestamp: Date.now()}]);
+  const [sessionStartTime, setSessionStartTime] = useState<number | null>(null);
+  const [betsPerSecond, setBetsPerSecond] = useState(0);
+  
+  // UI states for draggable stats
+  const [showLiveStats, setShowLiveStats] = useState(false);
+
   const [sessionStats, setSessionStats] = useState({
     totalBets: 0,
     wins: 0,
@@ -34,6 +41,23 @@ const SpinWheel = () => {
     longestLossStreak: 0,
     isWinStreak: true
   });
+
+  // Calculate bets per second
+  useEffect(() => {
+    if (sessionStartTime && sessionStats.totalBets > 0) {
+      const elapsed = (Date.now() - sessionStartTime) / 1000;
+      setBetsPerSecond(sessionStats.totalBets / elapsed);
+    }
+  }, [sessionStats.totalBets, sessionStartTime]);
+
+  const roundBetAmount = (amount: number) => {
+    // Round to 2 decimal places for amounts under $1
+    if (amount < 1) return Math.round(amount * 100) / 100;
+    // Round to 1 decimal place for amounts under $10
+    if (amount < 10) return Math.round(amount * 10) / 10;
+    // Round to nearest whole number for larger amounts
+    return Math.round(amount);
+  };
 
   // Wheel segments with multipliers
   const segments = [
@@ -83,6 +107,7 @@ const SpinWheel = () => {
       // Update profit tracking
       const newProfit = sessionProfit + profit;
       setSessionProfit(newProfit);
+      setProfitHistory(prev => [...prev, {value: newProfit, bet: sessionStats.totalBets + 1, timestamp: Date.now()}]);
       
       // Update session statistics
       setSessionStats(prev => {
@@ -129,16 +154,9 @@ const SpinWheel = () => {
     setIsAutoMode(true);
     setAutoBetRunning(true);
     setAutoBetCount(infiniteBet ? Infinity : maxAutoBets);
-    setSessionProfit(0);
-    setSessionStats({
-      totalBets: 0,
-      wins: 0,
-      losses: 0,
-      currentStreak: 0,
-      longestWinStreak: 0,
-      longestLossStreak: 0,
-      isWinStreak: true
-    });
+    if (!sessionStartTime) {
+      setSessionStartTime(Date.now());
+    }
   };
 
   const stopAutoPlay = () => {
@@ -166,6 +184,7 @@ const SpinWheel = () => {
 
   const resetStats = () => {
     setSessionProfit(0);
+    setProfitHistory([{value: 0, bet: 0, timestamp: Date.now()}]);
     setSessionStats({
       totalBets: 0,
       wins: 0,
@@ -175,6 +194,8 @@ const SpinWheel = () => {
       longestLossStreak: 0,
       isWinStreak: true
     });
+    setSessionStartTime(Date.now());
+    setBetsPerSecond(0);
   };
 
   useEffect(() => {
@@ -331,6 +352,15 @@ const SpinWheel = () => {
               </div>
             )}
             
+            {/* Live Stats Toggle */}
+            <button
+              onClick={() => setShowLiveStats(true)}
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center mt-2"
+            >
+              <BarChart3 className="w-5 h-5 mr-2" />
+              Show Live Stats
+            </button>
+            
             <div className="space-y-2">
               <button
                 onClick={spinWheel}
@@ -369,13 +399,6 @@ const SpinWheel = () => {
             </div>
           </div>
           
-          <LiveStats
-            sessionStats={sessionStats}
-            sessionProfit={sessionProfit}
-            profitHistory={[{value: sessionProfit, bet: sessionStats.totalBets, timestamp: Date.now()}]}
-            onReset={resetStats}
-            formatCurrency={formatCurrency}
-          />
 
           <SettingsManager
             currentGame="spin-wheel"
@@ -451,6 +474,19 @@ const SpinWheel = () => {
           </div>
         </div>
       </div>
+      
+      {/* Draggable Live Stats */}
+      <DraggableLiveStats
+        sessionStats={sessionStats}
+        sessionProfit={sessionProfit}
+        profitHistory={profitHistory}
+        onReset={resetStats}
+        formatCurrency={formatCurrency}
+        startTime={sessionStartTime}
+        betsPerSecond={betsPerSecond}
+        isOpen={showLiveStats}
+        onClose={() => setShowLiveStats(false)}
+      />
     </div>
   );
 };
