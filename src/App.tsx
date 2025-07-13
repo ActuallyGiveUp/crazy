@@ -18,6 +18,13 @@ import Register from './pages/Register';
 import Admin from './pages/Admin';
 import Changelog from './pages/Changelog';
 import Suggestions from './pages/Suggestions';
+import DiceProbabilityCalculator from './pages/DiceProbabilityCalculator';
+import CrashGameStrategy from './pages/CrashGameStrategy';
+import MartingaleCalculator from './pages/MartingaleCalculator';
+import BlackjackBasicStrategy from './pages/BlackjackBasicStrategy';
+import CasinoOddsCalculator from './pages/CasinoOddsCalculator';
+import PlinkoStrategy from './pages/PlinkoStrategy';
+import Sitemap from './pages/Sitemap';
 
 function App() {
   return (
@@ -42,6 +49,13 @@ function App() {
                 <Route path="/admin" element={<Admin />} />
                 <Route path="/changelog" element={<Changelog />} />
                 <Route path="/suggestions" element={<Suggestions />} />
+                <Route path="/dice-probability-calculator" element={<DiceProbabilityCalculator />} />
+                <Route path="/crash-game-strategy" element={<CrashGameStrategy />} />
+                <Route path="/martingale-calculator" element={<MartingaleCalculator />} />
+                <Route path="/blackjack-basic-strategy" element={<BlackjackBasicStrategy />} />
+                <Route path="/casino-odds-calculator" element={<CasinoOddsCalculator />} />
+                <Route path="/plinko-strategy" element={<PlinkoStrategy />} />
+                <Route path="/sitemap" element={<Sitemap />} />
               </Routes>
             </main>
             <Footer />

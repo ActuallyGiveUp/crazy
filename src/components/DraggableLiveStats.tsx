@@ -49,7 +49,9 @@ const DraggableLiveStats: React.FC<LiveStatsProps> = ({
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget || (e.target as HTMLElement).classList.contains('drag-handle')) {
+    const target = e.target as HTMLElement;
+    const header = target.closest('.drag-handle');
+    if (header) {
       setIsDragging(true);
       setDragOffset({
         x: e.clientX - position.x,
@@ -183,7 +185,7 @@ const DraggableLiveStats: React.FC<LiveStatsProps> = ({
     >
       {/* Header */}
       <div
-        className="drag-handle flex items-center justify-between p-3 bg-gray-700 rounded-t-lg cursor-move border-b border-gray-600"
+        className="drag-handle flex items-center justify-between p-3 bg-gray-700 rounded-t-lg cursor-move border-b border-gray-600 select-none"
         onMouseDown={handleMouseDown}
       >
         <h3 className="text-white font-bold flex items-center">

@@ -66,6 +66,20 @@ const Footer = () => {
                 <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Responsible Gaming</a></li>
                 <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Terms of Service</a></li>
                 <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Privacy Policy</a></li>
+                <li><Link to="/sitemap" className="text-gray-400 hover:text-white transition-colors">Sitemap</Link></li>
+              </ul>
+            </div>
+            
+            {/* SEO Landing Pages */}
+            <div>
+              <h3 className="text-white font-semibold mb-4">Strategy Guides</h3>
+              <ul className="space-y-2">
+                <li><Link to="/dice-probability-calculator" className="text-gray-400 hover:text-white transition-colors">Dice Calculator</Link></li>
+                <li><Link to="/crash-game-strategy" className="text-gray-400 hover:text-white transition-colors">Crash Strategy</Link></li>
+                <li><Link to="/martingale-calculator" className="text-gray-400 hover:text-white transition-colors">Martingale Calculator</Link></li>
+                <li><Link to="/blackjack-basic-strategy" className="text-gray-400 hover:text-white transition-colors">Blackjack Strategy</Link></li>
+                <li><Link to="/casino-odds-calculator" className="text-gray-400 hover:text-white transition-colors">Casino Odds</Link></li>
+                <li><Link to="/plinko-strategy" className="text-gray-400 hover:text-white transition-colors">Plinko Guide</Link></li>
               </ul>
             </div>
           </div>
