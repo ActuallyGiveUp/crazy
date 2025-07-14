@@ -66,16 +66,19 @@ const DraggableLiveStats: React.FC<LiveStatsProps> = ({
   };
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleMouseMove = (e: MouseEvent | TouchEvent) => {
+      const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
+      const clientY = 'touches' in e ? e.touches[0].clientY : e.clientY;
+      
       if (isDragging) {
         setPosition({
-          x: Math.max(0, Math.min(window.innerWidth - size.width, e.clientX - dragOffset.x)),
-          y: Math.max(0, Math.min(window.innerHeight - (isMinimized ? 60 : size.height), e.clientY - dragOffset.y))
+          x: Math.max(0, Math.min(window.innerWidth - size.width, clientX - dragOffset.x)),
+          y: Math.max(0, Math.min(window.innerHeight - (isMinimized ? 60 : size.height), clientY - dragOffset.y))
         });
       } else if (isResizing) {
         setSize({
-          width: Math.max(300, Math.min(800, e.clientX - position.x)),
-          height: Math.max(200, Math.min(600, e.clientY - position.y))
+          width: Math.max(300, Math.min(800, clientX - position.x)),
+          height: Math.max(200, Math.min(600, clientY - position.y))
         });
       }
     };
@@ -88,11 +91,15 @@ const DraggableLiveStats: React.FC<LiveStatsProps> = ({
     if (isDragging || isResizing) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
+      document.addEventListener('touchmove', handleMouseMove);
+      document.addEventListener('touchend', handleMouseUp);
     }
 
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('touchmove', handleMouseMove);
+      document.removeEventListener('touchend', handleMouseUp);
     };
   }, [isDragging, isResizing, dragOffset, position, size, isMinimized]);
 
@@ -182,6 +189,7 @@ const DraggableLiveStats: React.FC<LiveStatsProps> = ({
         minWidth: 300,
         minHeight: isMinimized ? 'auto' : 200
       }}
+      onTouchStart={handleMouseDown}
     >
       {/* Header */}
       <div

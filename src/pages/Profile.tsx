@@ -61,6 +61,23 @@ const Profile = () => {
               <p className="text-gray-400">{user.email}</p>
             </div>
             
+            {/* Earn Balance CTA */}
+            <div className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-lg p-4 mb-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-white font-bold text-lg">Need More Balance?</h3>
+                  <p className="text-green-100 text-sm">Complete tasks and spin the wheel for free money!</p>
+                </div>
+                <Link
+                  to="/earn-balance"
+                  className="bg-white hover:bg-gray-100 text-green-600 font-bold py-2 px-4 rounded-lg transition-colors flex items-center"
+                >
+                  <Coins className="w-4 h-4 mr-2" />
+                  Earn Free Balance
+                </Link>
+              </div>
+            </div>
+
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <span className="text-gray-400">Balance</span>
@@ -115,65 +132,68 @@ const Profile = () => {
           </div>
 
           {/* Balance Management */}
-          <div className="bg-gray-800 rounded-lg p-6">
-            <h3 className="text-lg font-bold text-white mb-4 flex items-center">
-              <DollarSign className="w-5 h-5 mr-2" />
-              Balance Management
-            </h3>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Balance Management (Demo Mode)
-                </label>
-                <div className="space-y-2">
-                  <div className="flex space-x-2">
-                    <button
-                      onClick={() => setBalanceAction('add')}
-                      className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                        balanceAction === 'add' 
-                          ? 'bg-green-600 text-white' 
-                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                      }`}
-                    >
-                      Add Money
-                    </button>
-                    <button
-                      onClick={() => setBalanceAction('remove')}
-                      className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                        balanceAction === 'remove' 
-                          ? 'bg-red-600 text-white' 
-                          : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                      }`}
-                    >
-                      Remove Money
-                    </button>
+          {/* Admin-Only Balance Management */}
+          {user?.isAdmin && (
+            <div className="bg-gray-800 rounded-lg p-6">
+              <h3 className="text-lg font-bold text-white mb-4 flex items-center">
+                <DollarSign className="w-5 h-5 mr-2" />
+                Admin: Balance Management
+              </h3>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Admin Balance Controls
+                  </label>
+                  <div className="space-y-2">
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => setBalanceAction('add')}
+                        className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                          balanceAction === 'add' 
+                            ? 'bg-green-600 text-white' 
+                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        }`}
+                      >
+                        Add Money
+                      </button>
+                      <button
+                        onClick={() => setBalanceAction('remove')}
+                        className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                          balanceAction === 'remove' 
+                            ? 'bg-red-600 text-white' 
+                            : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                        }`}
+                      >
+                        Remove Money
+                      </button>
+                    </div>
+                    <div className="flex space-x-2">
+                      <input
+                        type="number"
+                        value={balanceAmount}
+                        onChange={(e) => setBalanceAmount(Number(e.target.value))}
+                        className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                        min="1"
+                      />
+                      <button
+                        onClick={handleBalanceChange}
+                        className={`font-semibold py-2 px-4 rounded-lg transition-colors ${
+                          balanceAction === 'add'
+                            ? 'bg-green-600 hover:bg-green-700 text-white'
+                            : 'bg-red-600 hover:bg-red-700 text-white'
+                        }`}
+                      >
+                        {balanceAction === 'add' ? 'Add' : 'Remove'}
+                      </button>
+                    </div>
                   </div>
-                  <div className="flex space-x-2">
-                    <input
-                      type="number"
-                      value={balanceAmount}
-                      onChange={(e) => setBalanceAmount(Number(e.target.value))}
-                      className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
-                      min="1"
-                    />
-                    <button
-                      onClick={handleBalanceChange}
-                      className={`font-semibold py-2 px-4 rounded-lg transition-colors ${
-                        balanceAction === 'add'
-                          ? 'bg-green-600 hover:bg-green-700 text-white'
-                          : 'bg-red-600 hover:bg-red-700 text-white'
-                      }`}
-                    >
-                      {balanceAction === 'add' ? 'Add' : 'Remove'}
-                    </button>
-                  </div>
+                  <p className="text-xs text-gray-400 mt-1">
+                    Admin controls for managing user balances.
+                  </p>
                 </div>
-                <p className="text-xs text-gray-400 mt-1">
-                  This is demo mode. In a real casino, you would deposit/withdraw real money.
-                </p>
               </div>
             </div>
-          </div>
+          )}
 
           {/* Game Settings */}
           <div className="bg-gray-800 rounded-lg p-6">

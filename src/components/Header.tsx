@@ -107,7 +107,7 @@ const Header = () => {
                 <div className="flex items-center space-x-2 text-white">
                   <User className="w-4 h-4" />
                   <span className="text-sm">{user.username}</span>
-                  <span className="text-yellow-400 font-semibold">{formatCurrency(user.balance)}</span>
+                  <span className="text-yellow-400 font-semibold hidden sm:inline">{formatCurrency(user.balance)}</span>
                 </div>
                 <Link
                   to="/profile"

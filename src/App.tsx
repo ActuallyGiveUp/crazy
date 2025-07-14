@@ -25,6 +25,9 @@ import BlackjackBasicStrategy from './pages/BlackjackBasicStrategy';
 import CasinoOddsCalculator from './pages/CasinoOddsCalculator';
 import PlinkoStrategy from './pages/PlinkoStrategy';
 import Sitemap from './pages/Sitemap';
+import EarnBalance from './pages/EarnBalance';
+import LandingPages from './pages/LandingPages';
+import Donate from './pages/Donate';
 
 function App() {
   return (
@@ -56,6 +59,9 @@ function App() {
                 <Route path="/casino-odds-calculator" element={<CasinoOddsCalculator />} />
                 <Route path="/plinko-strategy" element={<PlinkoStrategy />} />
                 <Route path="/sitemap" element={<Sitemap />} />
+                <Route path="/earn-balance" element={<EarnBalance />} />
+                <Route path="/landing-pages" element={<LandingPages />} />
+                <Route path="/donate" element={<Donate />} />
               </Routes>
             </main>
             <Footer />
