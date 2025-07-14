@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { User, Settings, History, DollarSign, Calendar, RefreshCw } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useGame } from '../contexts/GameContext';
@@ -77,6 +78,21 @@ const Profile = () => {
                 </Link>
               </div>
             </div>
+            <div className="bg-gradient-to-r from-green-600 to-emerald-600 rounded-lg p-4 mb-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-white font-bold text-lg">Need More Balance?</h3>
+                  <p className="text-green-100 text-sm">Complete tasks and spin the wheel for free money!</p>
+                </div>
+                <Link
+                  to="/earn-balance"
+                  className="bg-white hover:bg-gray-100 text-green-600 font-bold py-2 px-4 rounded-lg transition-colors flex items-center"
+                >
+                  <Coins className="w-4 h-4 mr-2" />
+                  Earn Free Balance
+                </Link>
+              </div>
+            </div>
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -137,7 +153,7 @@ const Profile = () => {
             <div className="bg-gray-800 rounded-lg p-6">
               <h3 className="text-lg font-bold text-white mb-4 flex items-center">
                 <DollarSign className="w-5 h-5 mr-2" />
-                Admin: Balance Management
+                Currency Settings
               </h3>
               <div className="space-y-4">
                 <div>
@@ -174,21 +190,21 @@ const Profile = () => {
                         onChange={(e) => setBalanceAmount(Number(e.target.value))}
                         className="flex-1 px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
                         min="1"
-                      />
-                      <button
-                        onClick={handleBalanceChange}
-                        className={`font-semibold py-2 px-4 rounded-lg transition-colors ${
-                          balanceAction === 'add'
-                            ? 'bg-green-600 hover:bg-green-700 text-white'
-                            : 'bg-red-600 hover:bg-red-700 text-white'
-                        }`}
-                      >
-                        {balanceAction === 'add' ? 'Add' : 'Remove'}
-                      </button>
-                    </div>
-                  </div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Display Currency
+                  </label>
+                  <select
+                    value={user.currency}
+                    onChange={(e) => setCurrency(e.target.value as any)}
+                    className="w-full px-3 py-2 bg-gray-700 border border-gray-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-yellow-400"
+                  >
+                    <option value="USD">USD ($)</option>
+                    <option value="BTC">Bitcoin (₿)</option>
+                    <option value="ETH">Ethereum (Ξ)</option>
+                    <option value="LTC">Litecoin (Ł)</option>
+                  </select>
                   <p className="text-xs text-gray-400 mt-1">
-                    Admin controls for managing user balances.
+                    This only changes the display format. All values are converted for display purposes only.
                   </p>
                 </div>
               </div>

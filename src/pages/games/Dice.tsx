@@ -370,9 +370,6 @@ const Dice = () => {
 
   const multiplier = 100 / winChance;
 
-  // Calculate win zone percentage for visual display
-  const winZonePercentage = rollType === 'under' ? winChance : winChance;
-
   useEffect(() => {
     if (isAutoMode && autoBetRunning && (autoBetCount > 0 || infiniteBet) && !isRolling) {
       const timer = setTimeout(() => {
@@ -422,7 +419,7 @@ const Dice = () => {
                   <span className="text-yellow-400 font-medium">Multiplier: {multiplier.toFixed(2)}x</span>
                 </div>
                 
-                {/* Custom slider with dynamic colors */}
+                {/* Custom slider with dynamic colors based on win chance */}
                 <div className="relative">
                   <input
                     type="range"

@@ -49,15 +49,20 @@ const DraggableLiveStats: React.FC<LiveStatsProps> = ({
   };
 
   const handleMouseDown = (e: React.MouseEvent) => {
-    const target = e.target as HTMLElement;
-    const header = target.closest('.drag-handle');
-    if (header) {
-      setIsDragging(true);
-      setDragOffset({
-        x: e.clientX - position.x,
-        y: e.clientY - position.y
-      });
-    }
+    setIsDragging(true);
+    setDragOffset({
+      x: e.clientX - position.x,
+      y: e.clientY - position.y
+    });
+  };
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    setIsDragging(true);
+    setDragOffset({
+      x: touch.clientX - position.x,
+      y: touch.clientY - position.y
+    });
   };
 
   const handleResizeMouseDown = (e: React.MouseEvent) => {
@@ -193,8 +198,9 @@ const DraggableLiveStats: React.FC<LiveStatsProps> = ({
     >
       {/* Header */}
       <div
-        className="drag-handle flex items-center justify-between p-3 bg-gray-700 rounded-t-lg cursor-move border-b border-gray-600 select-none"
+        className="flex items-center justify-between p-3 bg-gray-700 rounded-t-lg cursor-move border-b border-gray-600 select-none"
         onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
       >
         <h3 className="text-white font-bold flex items-center">
           <BarChart3 className="w-4 h-4 mr-2" />
